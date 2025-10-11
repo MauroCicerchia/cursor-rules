@@ -1,0 +1,59 @@
+name: PR Next Version
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  preview-next-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      # If your CLI needs build for the repo, keep it:
+      - name: Build (optional)
+        run: bun run build
+
+      # 👇 We use Node to run the script
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Compute next version (Conventional Commits)
+        id: nextver
+        run: node scripts/next-version.mjs
+
+      - name: Create / Update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### 📦 Versioning preview (Conventional Commits)
+            **Current version:** `${{ steps.nextver.outputs.current }}`
+            **Version after merging to `main`:** `${{ steps.nextver.outputs.next }}`
+            **Bump type:** `${{ steps.nextver.outputs.type }}`
+            <details>
+            <summary>Details</summary>
+
+            ${{ steps.nextver.outputs.reason }}
+
+            </details>
+          edit-mode: replace
+          comment-identifier: next-version-preview
