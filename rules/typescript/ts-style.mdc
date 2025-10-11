@@ -1,0 +1,7 @@
+---
+description: "TS style and conventions"
+globs:
+  - "**/*.{ts,tsx}"
+---
+- Prefer `type` over `interface` unless inheritance.
+- Named exports.

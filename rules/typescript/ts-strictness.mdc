@@ -1,0 +1,7 @@
+---
+description: "Strict TypeScript (strict mode)"
+globs:
+  - "**/*.{ts,tsx}"
+---
+- Enable `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`.
+- Avoid `// @ts-ignore`.

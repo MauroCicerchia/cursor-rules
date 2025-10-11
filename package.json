@@ -1,0 +1,27 @@
+{
+  "name": "@maurocicerchia/cursor-rules",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "bin": {
+    "cursor-rules": "dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "rules",
+    "README.md",
+    "package.json",
+    "bunfig.toml"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --target=node --outfile=dist/index.mjs",
+    "dev": "bun run build && node dist/index.mjs",
+    "prepublishOnly": "bun run build"
+  },
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.1.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

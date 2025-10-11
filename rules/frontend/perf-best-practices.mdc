@@ -1,0 +1,8 @@
+---
+description: "Good practices for frontend performance"
+globs:
+  - "**/*.{ts,tsx,js,jsx,css,scss}"
+---
+- Code-splitting and lazy-loading.
+- Components and selectors memoization.
+- Optimized images.

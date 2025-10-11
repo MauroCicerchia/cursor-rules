@@ -1,0 +1,8 @@
+---
+description: "Conventions for NodeJS APIs (Express/Fastify)"
+globs:
+  - "api/**/*.{ts,js}"
+  - "src/**/*.{ts,js}"
+---
+- Input validation with Zod/Joi.
+- Layers: controller/service/repository.

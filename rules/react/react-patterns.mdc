@@ -1,0 +1,9 @@
+---
+description: "Recommended patterns for TS React projects"
+globs:
+  - "**/*.{tsx,jsx}"
+---
+## Components
+- Functional components with hooks.
+- Props typed with `type Props = { ... }`.
+- Avoid `any`; prefer `unknown` + type-guards.

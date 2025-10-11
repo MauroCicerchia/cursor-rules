@@ -1,0 +1,7 @@
+---
+description: "Style guide: CSS/Design System"
+globs:
+  - "**/*.{css,scss,tsx}"
+---
+- Centralized design tokens.
+- Consistent naming and documented utilities.
