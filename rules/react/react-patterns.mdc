@@ -7,3 +7,13 @@ globs:
 - Functional components with hooks.
 - Props typed with `type Props = { ... }`.
 - Avoid `any`; prefer `unknown` + type-guards.
+- Co-locate view logic with dedicated hooks for effects/data fetching to keep render pure.
+- Use `useMemo`/`useCallback` only when profiling shows value; default to simple code.
+
+## State Management
+- Prefer Redux Toolkit for shared state; define feature slices with `createSlice` and export typed selectors.
+- Configure the store with `configureStore`, enable the default middleware, and extend via `middleware.concat` for analytics/logging.
+- Model async flows with `createAsyncThunk` when server state must sync with local reducers; keep side effects inside thunks.
+- Use RTK Query for remote data: centralize endpoints in an `api` slice, leverage auto-generated hooks, and rely on cache lifetimes instead of manual state.
+- Always type API responses and arguments; export an `ApiProvider` or add the middleware to the store once at the root.
+- Derive UI-ready state via memoized selectors/hooks; avoid duplicating server data in slices when RTK Query already caches it.
