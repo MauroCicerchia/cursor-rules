@@ -36,7 +36,15 @@ jobs:
 
       - name: Compute next version (Conventional Commits)
         id: nextver
-        run: node scripts/next-version.mjs
+        run: |
+          env -u GITHUB_OUTPUT node scripts/next-version.mjs > .nextver.json
+
+          echo "current=$(node -p \"require('./.nextver.json').current\")" >> $GITHUB_OUTPUT
+          echo "next=$(node -p \"require('./.nextver.json').next\")" >> $GITHUB_OUTPUT
+          echo "type=$(node -p \"require('./.nextver.json').type\")" >> $GITHUB_OUTPUT
+          echo "reason<<__END__" >> $GITHUB_OUTPUT
+          node -p "require('./.nextver.json').reason || ''" >> $GITHUB_OUTPUT
+          echo "__END__" >> $GITHUB_OUTPUT
 
       - name: Create / Update PR comment
         uses: peter-evans/create-or-update-comment@v4
