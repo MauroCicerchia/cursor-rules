@@ -24,11 +24,19 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
 
+      # If your CLI needs build for the repo, keep it:
+      - name: Build (optional)
+        run: bun run build
+
+      # 👇 We use Node to run the script
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Compute next version (Conventional Commits)
         id: nextver
-        run: |
-          bun run build
-          bun run scripts/next-version.mjs
+        run: node scripts/next-version.mjs
 
       - name: Create / Update PR comment
         uses: peter-evans/create-or-update-comment@v4
