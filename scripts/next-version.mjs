@@ -9,6 +9,33 @@ import { Bumper } from "conventional-recommended-bump";
 const require = createRequire(import.meta.url);
 const semver = require("semver");
 
+async function getCurrentVersion() {
+  let tags = [];
+  try {
+    const tagOutput = execSync("git tag --sort=-v:refname", {
+      encoding: "utf8",
+    }).trim();
+    if (tagOutput) {
+      tags = tagOutput
+        .split("\n")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+    }
+  } catch {}
+
+  const validTags = tags
+    .map((tag) => semver.valid(tag))
+    .filter(Boolean);
+
+  if (validTags.length > 0) {
+    return validTags[0];
+  }
+
+  const pkgPath = path.resolve(process.cwd(), "package.json");
+  const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
+  return pkg.version;
+}
+
 async function runRecommendedBump(opts) {
   return await new Promise((resolve, reject) => {
     const bumper = new Bumper();
@@ -29,9 +56,7 @@ async function main() {
     execSync("git fetch --tags origin main", { stdio: "ignore" });
   } catch {}
 
-  const pkgPath = path.resolve(process.cwd(), "package.json");
-  const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
-  const current = pkg.version;
+  const current = await getCurrentVersion();
 
   let bump;
   try {
