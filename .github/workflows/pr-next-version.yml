@@ -34,9 +34,52 @@ jobs:
         with:
           node-version: 20
 
-      - name: Compute next version (Conventional Commits)
-        id: nextver
-        run: node scripts/next-version.mjs
+      - name: Fetch tags
+        run: git fetch --prune --tags
+        shell: bash
+
+      - name: Get latest stable tag
+        id: get_tag
+        run: |
+          TAGS=$(git tag --sort=-creatordate | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          TAG=$(echo "$TAGS" | head -n 1)
+          if [ -z "$TAG" ]; then
+            echo "No stable tag found, assuming first release"
+            echo "found_tag=false" >> $GITHUB_OUTPUT
+            echo "last_tag=0.0.0" >> $GITHUB_OUTPUT
+          else
+            echo "Found stable tag: $TAG"
+            echo "found_tag=true" >> $GITHUB_OUTPUT
+            echo "last_tag=$TAG" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Print commits
+        if: steps.get_tag.outputs.found_tag == 'true'
+        run: git log ${{ steps.get_tag.outputs.last_tag }}..HEAD --pretty=format:"%H %s"
+        shell: bash
+
+      - name: Calculate bump
+        id: bump
+        run: |
+          if [ "${{ steps.get_tag.outputs.found_tag }}" == "false" ]; then
+            echo "bump=first_release" >> $GITHUB_OUTPUT
+          else
+            BUMP=$(FROM_TAG="${{ steps.get_tag.outputs.last_tag }}" node scripts/next-version.mjs | grep '^Determined bump' | sed 's/^Determined bump: //')
+            echo "bump=$BUMP" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute next version
+        id: next_version
+        if: steps.bump.outputs.bump != ''
+        run: |
+          if [ "${{ steps.get_tag.outputs.found_tag }}" == "false" ]; then
+            echo "next_version=1.0.0" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(npx --yes --package semver semver "${{ steps.get_tag.outputs.last_tag }}" -i "${{ steps.bump.outputs.bump }}")
+            echo "next_version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
 
       - name: Create / Update PR comment
         uses: peter-evans/create-or-update-comment@v4
@@ -46,14 +89,8 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             ### 📦 Versioning preview (Conventional Commits)
-            **Current version:** `${{ steps.nextver.outputs.current }}`
-            **Version after merging to `main`:** `${{ steps.nextver.outputs.next }}`
-            **Bump type:** `${{ steps.nextver.outputs.type }}`
-            <details>
-            <summary>Details</summary>
-
-            ${{ steps.nextver.outputs.reason }}
-
-            </details>
+            **Current version:** `${{ steps.get_tag.outputs.last_tag }}`
+            **Version after merging to `main`:** `${{ steps.next_version.outputs.next_version }}`
+            **Bump type:** `${{ steps.bump.outputs.bump }}`
           edit-mode: replace
           comment-identifier: next-version-preview
