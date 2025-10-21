@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/MauroCicerchia/cursor-rules/compare/1.1.1...1.2.0) (2025-10-21)
+
+
+### Features
+
+* add functional programming and solid rules ([#5](https://github.com/MauroCicerchia/cursor-rules/issues/5)) ([b4509a2](https://github.com/MauroCicerchia/cursor-rules/commit/b4509a258d5de18be5ccd369ee2c58c1712ca376))
+
 ## [1.1.1](https://github.com/MauroCicerchia/cursor-rules/compare/1.1.0...1.1.1) (2025-10-14)
 
 
