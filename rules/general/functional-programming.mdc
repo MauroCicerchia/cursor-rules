@@ -1,0 +1,54 @@
+---
+description: "Functional programming: purity, immutability, declarativity"
+globs:
+  - "**/*.{ts,tsx,js,jsx}"
+alwaysApply: true
+---
+
+## Core principles
+- Pure functions: deterministic outputs for the same inputs; no side effects.
+- Immutability: treat data as values; never mutate inputs or shared state.
+- Declarativity: describe what to compute, not how to iterate.
+
+## Pure functions
+- No I/O inside pure functions: no logging, timers, randomness, network, filesystem, or environment access.
+- No hidden dependencies: pass dependencies explicitly as parameters.
+- Do not read or write globals; avoid singletons in pure code.
+- Prefer total functions: validate/guard at the boundaries; in the core return results instead of throwing.
+- For time/randomness, inject providers (e.g., `now: () => number`, `random: () => number`).
+
+## Immutability
+- Never mutate function inputs; copy on write using shallow or structured cloning.
+- Avoid in-place updates: avoid `push`, `pop`, `splice`, `sort`, `reverse`, and mutating `Map`/`Set`; use non-mutating alternatives.
+- Prefer persistent data structures or helpers (e.g., Immer) when complex updates are frequent, but keep APIs pure.
+- Model state transitions as pure reducers: `(state, event) -> state`.
+- In TypeScript, prefer `readonly` properties, `ReadonlyArray<T>`, and `as const` for literals.
+
+## Declarative data flow
+- Prefer composition of small functions over imperative loops.
+- Use `map`, `filter`, `reduce`, `flatMap`, and comprehensions where available.
+- Prefer expressions over statements when it improves readability and intent.
+- Avoid boolean flag parameters; compose behavior via smaller functions.
+
+## Composition and reuse
+- Compose functions rather than adding branches inside a single multipurpose function.
+- Keep functions focused; prefer a small parameter list or a single options object.
+- Provide combinators for your domain (e.g., `mapResult`, `chain`, `and`, `or`) when modeling Results/Options.
+
+## Side effects and boundaries
+- Isolate effects at the edges (API modules, repositories, UI handlers). Call pure core logic from these boundaries.
+- Make effects explicit via ports/adapters; pass effectful functions as dependencies.
+- Ensure effectful operations are idempotent when possible; handle retries and backoff at the boundary.
+
+## Errors and control flow
+- Prefer returning typed results over throwing in pure code; throw only at I/O boundaries.
+- Avoid exceptions for expected cases; use Option/Maybe or Result/Either style values.
+- Handle all branches exhaustively for discriminated unions; avoid silent fallthroughs.
+
+## Testing
+- Unit-test pure functions with example- and property-based tests where feasible.
+- Test effects at the boundary; inject dependencies for deterministic tests rather than mocking globals.
+
+## Naming and documentation
+- Name pure functions with verbs that describe computation (e.g., `calculateTotal`).
+- Document invariants and non-obvious constraints at boundaries; keep core code self-explanatory.

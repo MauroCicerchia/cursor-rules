@@ -1,0 +1,44 @@
+description: "SOLID principles: maintainable, extensible design"
+globs:
+  - "**/*.{ts,tsx,js,jsx}"
+alwaysApply: true
+---
+
+## Single Responsibility (SRP)
+- One reason to change per module/class/function; keep scopes cohesive.
+- Keep public APIs minimal; hide wiring and side-effects behind boundaries.
+- In TypeScript, prefer small modules over god classes; co-locate code by responsibility.
+- Extract unrelated concerns into separate units instead of adding flags/branches.
+
+## Open/Closed (OCP)
+- Closed for modification, open for extension: add behavior via new implementations, not edits to stable code.
+- Prefer composition and polymorphism (strategy/adapter) over `if/switch` on types sprinkled across the codebase.
+- Use discriminated unions with a single exhaustive switch or a registry map instead of scattered branching.
+- Avoid boolean flag parameters that mutate behavior; create distinct functions/types.
+
+## Liskov Substitution (LSP)
+- Subtypes must be valid substitutes: do not strengthen preconditions or weaken postconditions.
+- Avoid throwing `NotImplemented`/`Unsupported` in overrides; if you must, you likely want composition, not inheritance.
+- Preserve invariants and side-effect semantics when overriding behavior.
+- Keep inheritance shallow; prefer interfaces and composition to guarantee substitutability.
+
+## Interface Segregation (ISP)
+- Split broad interfaces into focused role-based interfaces that clients actually use.
+- Clients should not depend on methods they don't need; avoid optional mega-interfaces.
+- Compose small interfaces via intersections and generics; use `Pick`/`Extract` to narrow contracts per client.
+- Provide separate adapters for different clients rather than a single do-everything type.
+
+## Dependency Inversion (DIP)
+- High-level modules depend on abstractions (interfaces/functions), not concretes.
+- Inject dependencies via constructors/parameters; avoid `new`ing concretes inside core logic.
+- Separate composition root (app startup) from domain logic; wire adapters once at the boundary.
+- Model effects as ports/adapters; pass them in so the core remains testable and pure-ish.
+
+## Testing implications
+- Unit-test core through interfaces with injected dependencies; swap real adapters with fakes in tests.
+- Prefer contract tests for adapters to ensure they satisfy the same abstractions.
+
+## Practical patterns
+- Use Strategy/Adapter/Factory to satisfy OCP/DIP without deep inheritance.
+- Prefer composition over inheritance for behavior sharing; keep hierarchies shallow.
+- Centralize extensibility via registries (maps of key -> implementation) to avoid scattered branching.

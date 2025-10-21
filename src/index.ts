@@ -9,6 +9,7 @@ type Flags = {
   backend?: boolean;
   react?: boolean;
   typescript?: boolean;
+  general?: boolean;
   list?: boolean;
   force?: boolean;
   "dry-run"?: boolean;
@@ -19,7 +20,7 @@ type Flags = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const CATEGORIES = ["frontend", "backend", "react", "typescript"] as const;
+const CATEGORIES = ["frontend", "backend", "react", "typescript", "general"] as const;
 type Category = typeof CATEGORIES[number];
 
 function parseArgs(argv: string[]): Flags {
@@ -33,6 +34,7 @@ function parseArgs(argv: string[]): Flags {
     else if (name === "backend") flags.backend = true;
     else if (name === "react") flags.react = true;
     else if (name === "typescript") flags.typescript = true;
+    else if (name === "general") flags.general = true;
     else if (name === "list") flags.list = true;
     else if (name === "force") flags.force = true;
     else if (name === "dry-run") flags["dry-run"] = true;
@@ -42,7 +44,7 @@ function parseArgs(argv: string[]): Flags {
 
 function help() {
   console.log(`
-Usage: cursor-rules [--all] [--frontend] [--backend] [--react] [--typescript] [--force] [--dry-run] [--list]
+Usage: cursor-rules [--all] [--frontend] [--backend] [--react] [--typescript] [--general] [--force] [--dry-run] [--list]
 
 Examples:
   cursor-rules --all
@@ -55,6 +57,7 @@ Options:
   --backend       Install backend rules
   --react         Install react rules
   --typescript    Install typescript rules
+  --general       Install general rules
   --force         Overwrite existing files
   --dry-run       Simulate installation without writing
   --list          Show available categories
@@ -116,7 +119,7 @@ async function main() {
     : (CATEGORIES.filter((c) => (flags as any)[c]) as Category[]);
 
   if (selected.length === 0) {
-    console.log("Choose a category: --all --frontend --backend --react --typescript");
+    console.log("Choose a category: --all --frontend --backend --react --typescript --general");
     console.log("Or use --list to see available ones. Use --help to see help.");
     process.exit(1);
   }
