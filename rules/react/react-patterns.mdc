@@ -4,16 +4,95 @@ globs:
   - "**/*.{tsx,jsx}"
 ---
 ## Components
-- Functional components with hooks.
-- Props typed with `type Props = { ... }`.
-- Avoid `any`; prefer `unknown` + type-guards.
+- Functional components with hooks; keep render functions pure and side-effect free.
+- Props typed with `type Props = { ... }` and explicit return types.
+- Avoid `any`; prefer `unknown` + type guards, or precise unions for variants.
 - Co-locate view logic with dedicated hooks for effects/data fetching to keep render pure.
 - Use `useMemo`/`useCallback` only when profiling shows value; default to simple code.
+- Prefer composition over nesting and props drilling; use children and slots patterns.
+- Keep components small; extract UI primitives and domain widgets.
 
-## State Management
-- Prefer Redux Toolkit for shared state; define feature slices with `createSlice` and export typed selectors.
-- Configure the store with `configureStore`, enable the default middleware, and extend via `middleware.concat` for analytics/logging.
-- Model async flows with `createAsyncThunk` when server state must sync with local reducers; keep side effects inside thunks.
-- Use RTK Query for remote data: centralize endpoints in an `api` slice, leverage auto-generated hooks, and rely on cache lifetimes instead of manual state.
-- Always type API responses and arguments; export an `ApiProvider` or add the middleware to the store once at the root.
-- Derive UI-ready state via memoized selectors/hooks; avoid duplicating server data in slices when RTK Query already caches it.
+```tsx
+type CardProps = {
+  title: string;
+  actions?: React.ReactNode;
+  children?: React.ReactNode;
+};
+
+export function Card({ title, actions, children }: CardProps): JSX.Element {
+  return (
+    <section aria-labelledby="card-title">
+      <header>
+        <h2 id="card-title">{title}</h2>
+        {actions}
+      </header>
+      <div>{children}</div>
+    </section>
+  );
+}
+```
+
+## Hooks
+- Custom hooks encapsulate effects, subscriptions, and derived state; keep APIs stable and minimal.
+- Follow the Rules of Hooks; list all deps. Prefer explicit signals over suppressing ESLint warnings.
+- Use `useRef` for instance-like values; avoid it for state that should trigger renders.
+- Event handlers: use stable callbacks when passed deep; otherwise keep simple inline lambdas.
+
+```ts
+export function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = React.useState(value);
+  React.useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(id);
+  }, [value, delayMs]);
+  return debounced;
+}
+```
+
+## Data fetching
+- Prefer RTK Query, TanStack Query, or SWR for remote data; avoid ad-hoc fetching in components.
+- Centralize endpoints and types; co-locate fragments/hooks with feature modules.
+- Use cache invalidation and lifetimes; avoid duplicating server data in local state.
+- Handle loading, error, and empty states explicitly; render skeletons/placeholders.
+
+## State management
+- Local UI state via `useState`/`useReducer`; derive from props when possible.
+- For shared state, prefer Redux Toolkit or context + reducer for small scopes.
+- Avoid global mutable singletons; make state transitions pure and predictable.
+
+## Rendering performance
+- Avoid unnecessary re-renders: memoize expensive subtrees with `React.memo` when profiling indicates benefit.
+- Stabilize context values and callback identities when passed to many children.
+- Avoid object/array literals in props for hot paths; extract constants or memoize.
+
+## Lists and keys
+- Keys must be stable and unique across renders; avoid using array indices for dynamic lists.
+- Virtualize long lists and grids.
+
+## Styling
+- Prefer a consistent styling approach (CSS Modules, CSS-in-JS, Tailwind) per project.
+- Keep class names semantic; avoid stateful styles in JS when pure CSS suffices.
+
+## Accessibility (a11y)
+- Use semantic elements first; add ARIA only when necessary and correctly.
+- Maintain focus management in dialogs and menus; trap focus and restore on close.
+- Ensure color contrast and keyboard operability; provide visible focus states.
+
+## Forms
+- Use controlled components for complex forms; uncontrolled with refs for simple cases.
+- Leverage form libraries (React Hook Form) for validation and performance.
+- Validate at blur/submit with helpful inline messages; keep accessibility in mind.
+
+## Error boundaries
+- Wrap app roots and risky subtrees with error boundaries to prevent entire app crashes.
+- Report errors to monitoring and provide recovery actions.
+
+## Server components and SSR (when applicable)
+- Keep server components pure and serializable; pass primitives and serializable props only.
+- In SSR/SSG, avoid browser-only APIs; guard with environment checks.
+- Hydration: avoid effect-only state during first paint; prefer initial data via props.
+
+## Testing
+- Use React Testing Library with user-centric queries; avoid implementation details.
+- Test hooks via wrapper components or dedicated render hooks utilities.
+- Prefer integration tests for components; use unit tests for pure helpers.

@@ -1,0 +1,61 @@
+---
+description: "shadcn/ui: usage and customization guidance"
+globs:
+  - "**/*.{tsx,jsx}"
+---
+
+## Philosophy
+- shadcn/ui provides open-code components you own and customize.
+- Prefer composition and consistent APIs across components.
+- Reference: [shadcn/ui docs](https://ui.shadcn.com/docs)
+
+## Installation and registry
+- Use the CLI/registry to pull component code into your repo; you own edits.
+- Keep a local `components/` and `lib/` directory structure consistent with the registry.
+
+## Theming and tokens
+- Centralize theme variables (colors, spacing, radius) and use CSS variables.
+- Support dark mode with class-based toggles and media queries as documented.
+
+## Composition patterns
+- Build domain components from primitives (e.g., `Button`, `Dialog`, `DropdownMenu`).
+- Keep props minimal and predictable; expose `className` for styling overrides.
+- Favor controlled components for complex interactions; keep accessibility intact.
+
+## Accessibility
+- Components follow WAI-ARIA patterns; preserve roles/labels when customizing.
+- Maintain keyboard interactions (focus trap in dialogs, roving tabindex in menus).
+
+## Styling
+- Keep class naming consistent. Prefer utility classes (e.g., Tailwind) or CSS Modules per project standard.
+- Avoid inline styles for dynamic states when CSS state classes suffice.
+
+## Upgrades
+- Because code is local, track upstream changes manually. Keep a changelog of local edits.
+- Prefer small, reviewable diffs when syncing from the registry.
+
+## Example
+```tsx
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+
+export function ConfirmDelete({ onConfirm }: { onConfirm: () => void }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Are you sure?</DialogTitle>
+        </DialogHeader>
+        <div className="flex gap-2 justify-end">
+          <Button variant="secondary">Cancel</Button>
+          <Button variant="destructive" onClick={onConfirm}>Confirm</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+

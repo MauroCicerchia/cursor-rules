@@ -3,5 +3,140 @@ description: "Strict TypeScript (strict mode)"
 globs:
   - "**/*.{ts,tsx}"
 ---
-- Enable `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`.
-- Avoid `// @ts-ignore`.
+
+## Tsconfig: enable strictness
+- Turn on strict mode and complementary checks to surface bugs early.
+- Adopt these as a baseline; opt out only with a documented rationale.
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "useDefineForClassFields": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+## Any, unknown, never
+- Prefer `unknown` over `any` at boundaries; narrow before use.
+- Use `never` to model impossible states and to enforce exhaustiveness.
+- Avoid `any`. If unavoidable, isolate and document the boundary.
+
+## Exhaustiveness checks
+- For discriminated unions, require exhaustive handling; fail fast in development.
+
+```ts
+type Payment =
+  | { kind: "card"; last4: string }
+  | { kind: "paypal"; email: string };
+
+function assertNever(x: never): never { throw new Error("Unhandled case: " + JSON.stringify(x)); }
+
+function describe(p: Payment): string {
+  switch (p.kind) {
+    case "card": return `Card **** ${p.last4}`;
+    case "paypal": return `PayPal ${p.email}`;
+    default: return assertNever(p); // compile-time error if a case is missing
+  }
+}
+```
+
+## Indexed access safety
+- With `noUncheckedIndexedAccess`, index lookups are `T | undefined`; handle `undefined` explicitly.
+- Prefer `Map`/`Set` when key presence matters; check with `has` before `get`.
+
+```ts
+const byId: Record<string, { name: string }> = {};
+const item = byId[id];
+if (!item) return; // narrow before use
+console.log(item.name);
+```
+
+## Narrowing patterns
+- Use type guards: `in`, `typeof`, `instanceof`, and custom predicates `value is Type`.
+- Prefer narrowing over type assertions; assertions skip safety.
+- Use the `satisfies` operator to verify shape without widening literals.
+
+```ts
+interface User { id: string; email?: string }
+
+function hasEmail(u: User): u is User & { email: string } {
+  return typeof u.email === "string";
+}
+
+const u = { id: "1", email: "a@b" } as const satisfies User;
+if (hasEmail(u)) {
+  // email is string here
+}
+```
+
+## Null and optional exactness
+- Enable `exactOptionalPropertyTypes` to avoid surprising assignment of `undefined`.
+- Use nullish coalescing and optional chaining deliberately; avoid masking bugs.
+
+```ts
+type Profile = { bio?: string };
+function render(p: Profile) {
+  // bio is string | undefined; handle both
+  return p.bio ?? "No bio";
+}
+```
+
+## Overrides and inheritance
+- With `noImplicitOverride`, require `override` keyword to avoid accidental shadowing.
+- Prefer composition over inheritance; keep hierarchies shallow.
+
+```ts
+class Base { greet(): string { return "hi"; } }
+class Sub extends Base {
+  override greet(): string { return "hello"; }
+}
+```
+
+## External data boundaries
+- Treat all external inputs (network, storage, env, `JSON.parse`) as `unknown`.
+- Validate/parse at the boundary (e.g., schema validation) and convert to safe types.
+- Never assert types for untrusted input; construct types via decoding.
+
+## Avoid directive escapes
+- Avoid `// @ts-ignore` and `// @ts-nocheck`.
+- If suppression is essential, prefer `// @ts-expect-error` and add a short justification. Keep the scope minimal.
+
+## Generics and constraints
+- Constrain generics with `extends` to express requirements and improve inference.
+- Avoid overly broad generics that collapse to `any`; prefer specific type parameters.
+
+```ts
+function uniqueBy<T, K extends PropertyKey>(items: readonly T[], key: (t: T) => K): T[] {
+  const seen = new Set<K>();
+  const out: T[] = [];
+  for (const it of items) {
+    const k = key(it);
+    if (!seen.has(k)) { seen.add(k); out.push(it); }
+  }
+  return out;
+}
+```
+
+## Testing implications
+- Type-level safety reduces runtime tests, but do test boundaries and effects.
+- Add tests for exhaustiveness helpers and decoders to prevent regressions.
+
+## Migration guidance
+- Enable strict flags incrementally per package; fix compiler errors before proceeding.
+- Replace assertions with guards, model `undefined` explicitly, and introduce discriminated unions for state.
