@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/MauroCicerchia/cursor-rules/compare/1.2.0...1.3.0) (2025-10-24)
+
+
+### Features
+
+* react and typescript ([#6](https://github.com/MauroCicerchia/cursor-rules/issues/6)) ([3a60ecc](https://github.com/MauroCicerchia/cursor-rules/commit/3a60ecc9ec72934184ca7231f55709795868e091))
+
 # [1.2.0](https://github.com/MauroCicerchia/cursor-rules/compare/1.1.1...1.2.0) (2025-10-21)
 
 
