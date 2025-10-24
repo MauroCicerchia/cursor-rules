@@ -1,0 +1,74 @@
+---
+description: "RTK Query: data fetching and caching patterns"
+globs:
+  - "**/*.{ts,tsx}"
+---
+
+## Why RTK Query
+- Purpose-built for data fetching and caching on top of Redux Toolkit.
+- Eliminates hand-written loading/caching logic and dedupes requests.
+- Generates strongly-typed React hooks from endpoint definitions.
+- Reference: [RTK Query Overview](http://redux-toolkit.js.org/rtk-query/overview)
+
+## Setup
+- Define a single API slice per base URL.
+- Add reducer and middleware to the store and enable listeners.
+
+```ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const api = createApi({
+  reducerPath: 'api',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  tagTypes: ['User', 'Post'],
+  endpoints: (build) => ({
+    getUser: build.query<User, string>({ query: (id) => `users/${id}`, providesTags: (r, e, id) => [{ type: 'User', id }] }),
+    updateUser: build.mutation<User, Partial<User> & { id: string }>({
+      query: ({ id, ...patch }) => ({ url: `users/${id}`, method: 'PATCH', body: patch }),
+      invalidatesTags: (r, e, { id }) => [{ type: 'User', id }]
+    }),
+  })
+})
+
+export const { useGetUserQuery, useUpdateUserMutation } = api
+```
+
+## Store integration
+```ts
+import { configureStore } from '@reduxjs/toolkit'
+import { setupListeners } from '@reduxjs/toolkit/query'
+import { api } from './api'
+
+export const store = configureStore({
+  reducer: { [api.reducerPath]: api.reducer },
+  middleware: (gdm) => gdm().concat(api.middleware),
+})
+
+setupListeners(store.dispatch)
+```
+
+## Components
+- Hooks auto-fetch and re-render on arg changes; expose `{ data, error, isLoading }`.
+- Prefer role-based states in UI: loading, error, empty, success.
+
+```tsx
+function Profile({ id }: { id: string }) {
+  const { data, isLoading, error } = useGetUserQuery(id)
+  if (isLoading) return <Spinner />
+  if (error) return <ErrorView />
+  if (!data) return <Empty />
+  return <div>{data.name}</div>
+}
+```
+
+## Cache control
+- Use `providesTags`/`invalidatesTags` for precise cache invalidation.
+- Configure `keepUnusedDataFor` for lifetimes; opt into `refetchOnFocus/Reconnect`.
+
+## Mutations and optimistic updates
+- Use `onQueryStarted` for optimistic updates and streaming side-effects.
+
+## Best practices
+- Co-locate endpoints per feature, but keep a single API slice per base URL.
+- Type endpoints and responses; transform data in `transformResponse` if needed.
+- Prefer MSW for tests; avoid mocking inside components.

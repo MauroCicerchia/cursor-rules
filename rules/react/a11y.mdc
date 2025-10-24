@@ -1,0 +1,44 @@
+---
+description: "React accessibility (a11y) essentials"
+globs:
+  - "**/*.{tsx,jsx}"
+alwaysApply: true
+---
+
+## Semantics first
+- Prefer native HTML elements: `button`, `a`, `label`, `ul/li`, `table`.
+- Avoid div/span for interactive controls. If you must, add full semantics and keyboard support.
+
+## Keyboard operability
+- All interactivity must be reachable and usable with keyboard only.
+- Manage focus correctly: visible focus, logical order, no focus traps.
+- Use roving tabindex for composite widgets; keep `tabIndex` values to `0` or `-1` only.
+
+## ARIA usage
+- Use ARIA as a last resort; do not duplicate native semantics.
+- Provide names/roles/states: `aria-label`, `aria-labelledby`, `aria-describedby` when necessary.
+- Keep ARIA attributes in sync with UI state.
+
+## Forms
+- Associate inputs with labels using `<label for>`/`id` or wrapping.
+- Provide helper/error text via `aria-describedby`.
+- Announce validation errors and success states.
+
+## Dialogs and overlays
+- Use proper semantics (`role="dialog"`, `aria-modal="true"`), trap focus within, and restore focus on close.
+- Hide background content from assistive tech while open.
+
+## Images and media
+- Provide alt text for images that convey information; decorative images use empty `alt=""`.
+- Provide captions/transcripts for video/audio where applicable.
+
+## Live regions
+- Use `aria-live` for async content updates that need announcement; choose politeness appropriately.
+
+## Color and contrast
+- Meet WCAG contrast ratios; avoid color as the only conveyor of information.
+
+## Testing
+- Lint with `eslint-plugin-jsx-a11y`.
+- Write RTL tests using role-based queries and `toHaveAccessibleName/Description`.
+

@@ -3,5 +3,94 @@ description: "TS style and conventions"
 globs:
   - "**/*.{ts,tsx}"
 ---
-- Prefer `type` over `interface` unless inheritance.
-- Named exports.
+
+## Module and exports
+- Prefer named exports; avoid default exports for better refactors and discoverability.
+- Keep modules focused; one main thing per file. Split when the file grows unwieldy.
+
+## Types vs interfaces
+- Prefer `type` aliases for most shapes and unions. Use `interface` only when you need declaration merging or class `implements` with extension.
+- Do not mix `type` and `interface` for the same concept.
+
+```ts
+export type User = {
+  id: string;
+  name: string;
+};
+
+export interface Repository<T> {
+  getById(id: string): Promise<T | undefined>;
+}
+```
+
+## Naming
+- Use descriptive, full-word names. Avoid abbreviations and 1–2 letter identifiers.
+- Types, interfaces, and enums use PascalCase; variables, functions, and properties use camelCase.
+- Boolean variables should read as predicates: `isReady`, `hasAccess`, `canRetry`.
+
+## Immutability by default
+- Prefer `readonly` properties and `ReadonlyArray<T>` for public APIs.
+- Avoid mutating parameters; return new values.
+
+## Function design
+- Keep functions small and single-purpose; use early returns.
+- Prefer explicit parameter objects for long parameter lists, with clear naming and defaults.
+- Use precise return types; avoid `any`. Prefer narrowing unions over broad types.
+
+```ts
+type FetchUserOptions = {
+  signal?: AbortSignal;
+  timeoutMs?: number;
+};
+
+export async function fetchUser(id: string, { signal, timeoutMs = 5000 }: FetchUserOptions = {}): Promise<User> {
+  // ... implementation ...
+  throw new Error("not implemented");
+}
+```
+
+## Enums and literals
+- Prefer string literal unions over `enum` for simple cases. Use `as const` and unions.
+
+```ts
+export const roles = ["admin", "editor", "viewer"] as const;
+export type Role = typeof roles[number];
+```
+
+## Assertions and non-null
+- Avoid non-null assertions (`!`) and type assertions (`as X`) unless absolutely necessary and documented.
+- Prefer safe narrowing and guards.
+
+## Error handling
+- Avoid throwing for expected control flow. Model results explicitly or return `undefined`/`null` with clear docs.
+- Use discriminated unions for domain errors; keep exception throwing at boundaries.
+
+## React-specific (when using TSX)
+- Type component props via `type Props = { ... }` and function components with explicit return types.
+- Avoid `React.FC`; it adds implicit `children` and can obscure props.
+- Prefer explicit event handler types from React, not `any`.
+
+```tsx
+type ButtonProps = {
+  kind?: "primary" | "secondary";
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+};
+
+export function Button({ kind = "primary", onClick }: ButtonProps): JSX.Element {
+  // ...
+  return <button onClick={onClick} data-kind={kind} />;
+}
+```
+
+## File layout and imports
+- Group imports: std libs, external deps, internal modules. Keep them sorted and deduplicated.
+- Use absolute/aliased imports where configured; avoid deep relative paths like `../../../x`.
+- Remove unused exports and dead code.
+
+## JSDoc and comments
+- Document only non-obvious behavior, invariants, and edge cases. Keep comments concise.
+- Use JSDoc for public APIs and to influence inference where necessary.
+
+## Linting and formatting
+- Use an auto-formatter. Keep style consistent; avoid bikeshedding.
+- Prefer ESLint rules that enforce the above conventions.
